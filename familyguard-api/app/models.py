@@ -18,6 +18,10 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
+is_active: Mapped[bool] = mapped_column(
+    Boolean, server_default=text("true"), default=True, nullable=False
+)
+
 class Base(DeclarativeBase):
     pass
 

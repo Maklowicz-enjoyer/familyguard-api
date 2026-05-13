@@ -66,7 +66,7 @@ def confirm_pairing(
 
     guardian_device = _get_device_or_403(body.guardian_device_id, current_user, db)
 
-    # Szukaj kodu — nie mów czy zły czy wygasły (OWASP A07)
+    # Szukaj kodu
     pairing_code = db.query(models.PairingCode).filter(
         models.PairingCode.code == body.code,
         models.PairingCode.used_at.is_(None),
@@ -98,6 +98,61 @@ def confirm_pairing(
     db.refresh(pair)
     return schemas.DevicePairResponse.model_validate(pair)
 
+@router.get("/my-children", response_model=list[schemas.ChildInfoResponse])
+def get_my_children(
+    device_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    _get_device_or_403(device_id, current_user, db)
+
+    pairs = db.query(models.DevicePair).filter(
+        models.DevicePair.guardian_device_id == device_id,
+        models.DevicePair.is_active.is_(True),
+    ).all()
+
+    result = []
+    for pair in pairs:
+        child_device = pair.child_device
+        child_user = child_device.owner
+        result.append(schemas.ChildInfoResponse(
+            pair_id=pair.id,
+            child_device_id=child_device.id,
+            child_user_id=child_user.id,
+            username=child_user.username,
+            device_name=child_device.device_name,
+            last_seen=child_device.last_seen,
+            paired_at=pair.paired_at,
+        ))
+    return result
+
+
+@router.get("/my-guardian", response_model=schemas.GuardianInfoResponse)
+def get_my_guardian(
+    device_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    _get_device_or_403(device_id, current_user, db)
+
+    pair = db.query(models.DevicePair).filter(
+        models.DevicePair.child_device_id == device_id,
+        models.DevicePair.is_active.is_(True),
+    ).first()
+
+    if not pair:
+        raise HTTPException(status_code=404, detail="Urządzenie nie jest sparowane")
+
+    guardian_device = pair.guardian_device
+    guardian_user = guardian_device.owner
+    return schemas.GuardianInfoResponse(
+        pair_id=pair.id,
+        guardian_device_id=guardian_device.id,
+        guardian_user_id=guardian_user.id,
+        username=guardian_user.username,
+        device_name=guardian_device.device_name,
+        paired_at=pair.paired_at,
+    )
 
 @router.get("/status", response_model=schemas.PairingStatusResponse)
 def pairing_status(

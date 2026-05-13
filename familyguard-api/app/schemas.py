@@ -83,6 +83,23 @@ class PairingStatusResponse(BaseModel):
     pair_id: uuid.UUID | None = None
     paired_at: datetime | None = None
 
+class ChildInfoResponse(BaseModel):
+    pair_id: uuid.UUID
+    child_device_id: uuid.UUID
+    child_user_id: uuid.UUID
+    username: str
+    device_name: str | None
+    last_seen: datetime | None
+    paired_at: datetime
+
+
+class GuardianInfoResponse(BaseModel):
+    pair_id: uuid.UUID
+    guardian_device_id: uuid.UUID
+    guardian_user_id: uuid.UUID
+    username: str
+    device_name: str | None
+    paired_at: datetime
 
 class LocationCreateRequest(BaseModel):
     device_id: uuid.UUID
