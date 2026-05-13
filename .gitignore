@@ -20,3 +20,5 @@ secrets/
 
 # Logi
 *.log
+lib/
+logs.txt
