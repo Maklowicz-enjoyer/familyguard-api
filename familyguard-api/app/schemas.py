@@ -82,3 +82,43 @@ class PairingStatusResponse(BaseModel):
     is_paired: bool
     pair_id: uuid.UUID | None = None
     paired_at: datetime | None = None
+
+
+class LocationCreateRequest(BaseModel):
+    device_id: uuid.UUID
+    latitude: float
+    longitude: float
+    accuracy_meters: float | None = None
+    battery_level: int | None = None
+
+    @field_validator("latitude")
+    @classmethod
+    def latitude_range(cls, v):
+        if not (-90 <= v <= 90):
+            raise ValueError("latitude musi być w zakresie -90..90")
+        return v
+
+    @field_validator("longitude")
+    @classmethod
+    def longitude_range(cls, v):
+        if not (-180 <= v <= 180):
+            raise ValueError("longitude musi być w zakresie -180..180")
+        return v
+
+    @field_validator("battery_level")
+    @classmethod
+    def battery_range(cls, v):
+        if v is not None and not (0 <= v <= 100):
+            raise ValueError("battery_level musi być w zakresie 0..100")
+        return v
+
+
+class LocationResponse(BaseModel):
+    id: uuid.UUID
+    device_id: uuid.UUID
+    latitude: float
+    longitude: float
+    accuracy_meters: float | None
+    battery_level: int | None
+    recorded_at: datetime
+    model_config = {"from_attributes": True}
