@@ -1,0 +1,80 @@
+secrets:
+  pg_password:
+    file: ./secrets/pg_password.txt
+  db-pass:
+    file: ./secrets/pg_password.txt
+  jwt-secret:
+    file: ./secrets/jwt-secret.txt
+
+services:
+  postgres:
+    image: postgres:16.9
+    container_name: pg_primary
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+      POSTGRES_DB: parental_app
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    secrets:
+      - pg_password
+    volumes:
+      - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - pg_primary_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    #ports:
+     # - "100.80.77.35:5432:5432"
+    networks:
+      - familyguard-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d parental_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pg_admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - "0.0.0.0:5050:80"
+    networks:
+      - familyguard-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    build: ./familyguard-api
+    container_name: familyguard_api
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:2244:2244"
+    environment:
+      DB_USER: appuser
+      DB_NAME: parental_app
+      DB_HOST: pg_primary
+    secrets:
+      - db-pass
+      - jwt-secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - familyguard-net
+
+networks:
+  familyguard-net:
+    driver: bridge
+
+volumes:
+  pg_primary_data:
+  pgadmin_data:

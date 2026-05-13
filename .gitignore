@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Sekrety – NIGDY do repo
+secrets/
+*.secret
+.env
+
+# Docker
+.docker/
+
+# IDE
+.idea/
+.vscode/
+
+# Logi
+*.log
