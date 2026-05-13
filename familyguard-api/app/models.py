@@ -18,9 +18,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
-is_active: Mapped[bool] = mapped_column(
-    Boolean, server_default=text("true"), default=True, nullable=False
-)
+
 
 class Base(DeclarativeBase):
     pass
@@ -55,6 +53,9 @@ class User(Base):
     devices: Mapped[list["Device"]] = relationship(
         "Device", back_populates="owner", cascade="all, delete-orphan"
     )
+    is_active: Mapped[bool] = mapped_column(
+    Boolean, server_default=text("true"), default=True, nullable=False
+)
 
 
 class Device(Base):
@@ -157,7 +158,7 @@ class DevicePair(Base):
         DateTime(timezone=True), server_default=text("now()"), nullable=False
     )
     is_active: Mapped[bool] = mapped_column(
-        Boolean, server_default=text("true"), nullable=False
+    Boolean, server_default=text("true"), default=True, nullable=False
     )
 
     child_device: Mapped["Device"] = relationship(
