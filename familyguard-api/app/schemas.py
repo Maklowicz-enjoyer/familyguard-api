@@ -2,6 +2,8 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from enum import Enum
 import re
+import uuid
+from datetime import datetime
 
 class UserRole(str, Enum):
     parent = "parent"
@@ -42,3 +44,41 @@ class UserResponse(BaseModel):
     role: str
 
     model_config = {"from_attributes": True}  # pozwala tworzyć z SQLAlchemy 
+
+class DeviceRegisterRequest(BaseModel):
+    device_name: str | None = None
+    platform: str = "android"
+    fcm_token: str | None = None
+
+class DeviceResponse(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    device_name: str | None
+    platform: str
+    registered_at: datetime
+    model_config = {"from_attributes": True}
+
+class GeneratePairingCodeRequest(BaseModel):
+    device_id: uuid.UUID
+
+class PairingCodeResponse(BaseModel):
+    code: str
+    expires_at: datetime
+    model_config = {"from_attributes": True}
+
+class ConfirmPairingRequest(BaseModel):
+    code: str
+    guardian_device_id: uuid.UUID
+
+class DevicePairResponse(BaseModel):
+    id: uuid.UUID
+    child_device_id: uuid.UUID
+    guardian_device_id: uuid.UUID
+    paired_at: datetime
+    is_active: bool
+    model_config = {"from_attributes": True}
+
+class PairingStatusResponse(BaseModel):
+    is_paired: bool
+    pair_id: uuid.UUID | None = None
+    paired_at: datetime | None = None
