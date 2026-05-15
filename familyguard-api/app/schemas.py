@@ -100,6 +100,30 @@ class GuardianInfoResponse(BaseModel):
     username: str
     device_name: str | None
     paired_at: datetime
+class DashboardMessageResponse(BaseModel):
+    id: uuid.UUID
+    sender_device_id: uuid.UUID
+    receiver_device_id: uuid.UUID
+    content: str
+    sent_at: datetime
+    read_at: datetime | None
+
+
+class DashboardLocationResponse(BaseModel):
+    latitude: float
+    longitude: float
+    accuracy_meters: float | None
+    battery_level: int | None
+    recorded_at: datetime
+
+
+class ChildDashboardResponse(BaseModel):
+    child_device_id: uuid.UUID
+    username: str
+    device_name: str | None
+    last_seen: datetime | None
+    latest_location: DashboardLocationResponse | None
+    recent_messages: list[DashboardMessageResponse]
 
 class LocationCreateRequest(BaseModel):
     device_id: uuid.UUID

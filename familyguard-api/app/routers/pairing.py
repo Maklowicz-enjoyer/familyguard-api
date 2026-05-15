@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import get_db
 from app.routers.auth import get_current_user
+from sqlalchemy.orm import Session, joinedload
 
 router = APIRouter(prefix="/pairing", tags=["pairing"])
 
@@ -106,25 +107,30 @@ def get_my_children(
 ):
     _get_device_or_403(device_id, current_user, db)
 
-    pairs = db.query(models.DevicePair).filter(
-        models.DevicePair.guardian_device_id == device_id,
-        models.DevicePair.is_active.is_(True),
-    ).all()
+    pairs = (
+        db.query(models.DevicePair)
+        .options(
+            joinedload(models.DevicePair.child_device).joinedload(models.Device.owner)
+        )
+        .filter(
+            models.DevicePair.guardian_device_id == device_id,
+            models.DevicePair.is_active.is_(True),
+        )
+        .all()
+    )
 
-    result = []
-    for pair in pairs:
-        child_device = pair.child_device
-        child_user = child_device.owner
-        result.append(schemas.ChildInfoResponse(
+    return [
+        schemas.ChildInfoResponse(
             pair_id=pair.id,
-            child_device_id=child_device.id,
-            child_user_id=child_user.id,
-            username=child_user.username,
-            device_name=child_device.device_name,
-            last_seen=child_device.last_seen,
+            child_device_id=pair.child_device.id,
+            child_user_id=pair.child_device.owner.id,
+            username=pair.child_device.owner.username,
+            device_name=pair.child_device.device_name,
+            last_seen=pair.child_device.last_seen,
             paired_at=pair.paired_at,
-        ))
-    return result
+        )
+        for pair in pairs
+    ]
 
 
 @router.get("/my-guardian", response_model=schemas.GuardianInfoResponse)
