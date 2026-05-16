@@ -88,6 +88,30 @@ class PairingStatusResponse(BaseModel):
     pair_id: uuid.UUID | None = None
     paired_at: datetime | None = None
 
+class MessageSendRequest(BaseModel):
+    sender_device_id: uuid.UUID
+    receiver_device_id: uuid.UUID
+    content: str
+
+    @field_validator("content")
+    @classmethod
+    def content_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError("Wiadomość nie może być pusta")
+        if len(v) > 1000:
+            raise ValueError("Wiadomość może mieć maksymalnie 1000 znaków")
+        return v
+
+
+class MessageResponse(BaseModel):
+    id: uuid.UUID
+    sender_device_id: uuid.UUID
+    receiver_device_id: uuid.UUID
+    content: str
+    sent_at: datetime
+    read_at: datetime | None
+    model_config = {"from_attributes": True}
+
 class ChildInfoResponse(BaseModel):
     pair_id: uuid.UUID
     child_device_id: uuid.UUID
