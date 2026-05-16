@@ -14,11 +14,28 @@ def register_device(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    # Jeśli hardware_id podany — sprawdź czy urządzenie już istnieje
+    if body.hardware_id:
+        existing = db.query(models.Device).filter(
+            models.Device.user_id == current_user.id,
+            models.Device.hardware_id == body.hardware_id,
+        ).first()
+
+        if existing:
+            # Zaktualizuj dane urządzenia i zwróć istniejący device_id
+            existing.device_name = body.device_name
+            existing.fcm_token = body.fcm_token
+            existing.platform = body.platform
+            db.commit()
+            db.refresh(existing)
+            return schemas.DeviceResponse.model_validate(existing)
+
     device = models.Device(
         user_id=current_user.id,
         device_name=body.device_name,
         platform=body.platform,
         fcm_token=body.fcm_token,
+        hardware_id=body.hardware_id,
     )
     db.add(device)
     db.commit()

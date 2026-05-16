@@ -52,12 +52,14 @@ class DeviceRegisterRequest(BaseModel):
     device_name: str | None = None
     platform: str = "android"
     fcm_token: str | None = None
+    hardware_id: str | None = None
 
 class DeviceResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
     device_name: str | None
     platform: str
+    hardware_id: str | None
     registered_at: datetime
     model_config = {"from_attributes": True}
 

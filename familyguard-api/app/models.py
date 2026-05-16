@@ -62,6 +62,8 @@ class Device(Base):
     __tablename__ = "devices"
     __table_args__ = {"schema": "app"}
 
+    hardware_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -74,6 +76,8 @@ class Device(Base):
     )
     device_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    hardware_id: Mapped[str | None] = mapped_column(String(255), nullable=True)  # ← nowe
     platform: Mapped[str] = mapped_column(
         String(50),
         server_default=text("'android'::character varying"),
