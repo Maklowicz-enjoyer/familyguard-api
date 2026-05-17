@@ -47,6 +47,8 @@ def post_location(
         raise HTTPException(status_code=403, detail="Tylko konto dziecka może wysyłać lokalizację")
 
     device = _get_device_or_403(body.device_id, current_user, db)
+    device.last_seen = datetime.now(timezone.utc)
+    db.commit()
 
     pair = db.query(models.DevicePair).filter(
         models.DevicePair.child_device_id == device.id,
