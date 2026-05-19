@@ -239,3 +239,22 @@ class Message(Base):
     receiver: Mapped["Device"] = relationship(
         "Device", foreign_keys=[receiver_device_id]
     )
+
+class SosAlert(Base):
+    __tablename__ = "sos_alerts"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    child_device_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app.devices.id", ondelete="CASCADE"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()"), nullable=False
+    )
+    acknowledged_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    child_device: Mapped["Device"] = relationship("Device")

@@ -88,6 +88,21 @@ class PairingStatusResponse(BaseModel):
     pair_id: uuid.UUID | None = None
     paired_at: datetime | None = None
 
+class SosRequest(BaseModel):
+    device_id: uuid.UUID
+
+
+class SosAlertResponse(BaseModel):
+    id: uuid.UUID
+    child_device_id: uuid.UUID
+    child_username: str
+    created_at: datetime
+    acknowledged_at: datetime | None
+
+
+class SosAcknowledgeResponse(BaseModel):
+    id: uuid.UUID
+    acknowledged_at: datetime
 class MessageSendRequest(BaseModel):
     sender_device_id: uuid.UUID
     receiver_device_id: uuid.UUID
